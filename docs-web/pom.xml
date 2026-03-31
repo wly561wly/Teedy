@@ -20,6 +20,12 @@
       <groupId>com.sismics.docs</groupId>
       <artifactId>docs-core</artifactId>
     </dependency>
+
+    <dependency>
+      <groupId>org.postgresql</groupId>
+      <artifactId>postgresql</artifactId>
+      <version>42.6.0</version>
+    </dependency>
     
     <dependency>
       <groupId>com.sismics.docs</groupId>
@@ -185,7 +191,7 @@
                 <docs.home>../data/docs</docs.home>
               </systemProperties>
               <webApp>
-                <contextPath>/docs-web</contextPath>
+                <contextPath>/</contextPath>
                 <overrideDescriptor>${project.basedir}/src/dev/main/webapp/web-override.xml</overrideDescriptor>
               </webApp>
             </configuration>
