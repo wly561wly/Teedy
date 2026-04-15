@@ -1,45 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<ruleset name="Teedy Custom Metrics Rules"
-         xmlns="http://pmd.sourceforge.net/ruleset/2.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 https://pmd.github.io/schema/ruleset_2_0_0.xsd">
+<ruleset name="CustomRules" xmlns="http://pmd.sourceforge.net/ruleset/2.0.0">
+    <description>Custom PMD Rules for Teedy</description>
 
-  <description>
-    Teedy custom PMD ruleset with 5 requested metrics: LoC, CC, WMC, CBO, LCOM.
-  </description>
+    <!-- 1. LoC 代码行数 -->
+    <rule ref="category/java/codestyle.xml/TooManyLinesOfCodeInMethod"/>
 
-  <!-- LoC: Lines of Code (via NCSS threshold checks) -->
-  <rule ref="category/java/design.xml/NcssCount">
-    <properties>
-      <property name="methodReportLevel" value="80"/>
-      <property name="classReportLevel" value="600"/>
-    </properties>
-  </rule>
+    <!-- 2. CC 圈复杂度 -->
+    <rule ref="category/java/codestyle.xml/CyclomaticComplexity"/>
 
-  <!-- CC: Cyclomatic Complexity (method level) -->
-  <rule ref="category/java/design.xml/CyclomaticComplexity">
-    <properties>
-      <property name="methodReportLevel" value="10"/>
-      <property name="classReportLevel" value="99999"/>
-    </properties>
-  </rule>
+    <!-- 3. WMC 类加权方法数 -->
+    <rule ref="category/java/design.xml/TooManyMethods"/>
 
-  <!-- WMC: Weighted Methods per Class (class level from CyclomaticComplexity) -->
-  <rule ref="category/java/design.xml/CyclomaticComplexity">
-    <properties>
-      <property name="methodReportLevel" value="99999"/>
-      <property name="classReportLevel" value="50"/>
-    </properties>
-  </rule>
+    <!-- 4. CBO 对象耦合 -->
+    <rule ref="category/java/design.xml/CouplingBetweenObjects"/>
 
-  <!-- CBO: Coupling Between Objects -->
-  <rule ref="category/java/design.xml/CouplingBetweenObjects">
-    <properties>
-      <property name="threshold" value="20"/>
-    </properties>
-  </rule>
-
-  <!-- LCOM: Lack of Cohesion in Methods (approximated by GodClass cohesion checks) -->
-  <rule ref="category/java/design.xml/GodClass"/>
-
+    <!-- 5. LCOM 内聚性不足 -->
+    <rule ref="category/java/design.xml/LackOfCohesion"/>
 </ruleset>
