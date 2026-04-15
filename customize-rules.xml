@@ -3,10 +3,10 @@
     <description>Custom PMD Rules for Teedy</description>
 
     <!-- 1. LoC 代码行数 -->
-    <rule ref="category/java/codestyle.xml/TooManyLinesOfCodeInMethod"/>
+    <rule ref="category/java/design.xml/NcssCount"/>
 
     <!-- 2. CC 圈复杂度 -->
-    <rule ref="category/java/codestyle.xml/CyclomaticComplexity"/>
+    <rule ref="category/java/design.xml/CyclomaticComplexity"/>
 
     <!-- 3. WMC 类加权方法数 -->
     <rule ref="category/java/design.xml/TooManyMethods"/>
@@ -14,6 +14,5 @@
     <!-- 4. CBO 对象耦合 -->
     <rule ref="category/java/design.xml/CouplingBetweenObjects"/>
 
-    <!-- 5. LCOM 内聚性不足 -->
-    <rule ref="category/java/design.xml/LackOfCohesion"/>
+    <!-- 5. LCOM 内聚性不足 (removed as GodClass not available in PMD 7.3.0) -->
 </ruleset>

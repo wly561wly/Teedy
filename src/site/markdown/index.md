@@ -24,7 +24,6 @@ The following document contains the results of PMD 7.3.0.
 - **CyclomaticComplexity**: Methods with high cyclomatic complexity (e.g., importMessage with 12, createFile with 15)
 - **TooManyMethods**: Classes with too many methods (e.g., FileDao, UserDao, AppResource with 87 methods)
 - **CouplingBetweenObjects**: Classes with high coupling (e.g., InboxService, AppResource)
-- **GodClass**: Possible God Classes (e.g., AppResource with WMC=87, ATFD=50, TCC=0.000%)
 
 For detailed reports, see [Docs Core PMD](docs-core/pmd.html), [Docs Web PMD](docs-web/pmd.html), [Docs Web Common PMD](docs-web-common/pmd.html).
 
