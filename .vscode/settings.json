@@ -1,0 +1,8 @@
+{
+    "chat.tools.terminal.autoApprove": {
+        "/^git add customize-rules\\.xml pom\\.xml; git commit -m \"feat: update PMD ruleset and add check execution\"$/": {
+            "approve": true,
+            "matchCommandLine": true
+        }
+    }
+}
