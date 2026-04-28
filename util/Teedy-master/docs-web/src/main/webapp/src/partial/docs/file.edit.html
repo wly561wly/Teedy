@@ -1,0 +1,45 @@
+<div class="text-center">
+  <div class="btn-group pull-left">
+    <button type="button" class="btn btn-default" ng-click="cancel()">
+      <span class="fas fa-times"></span>
+      {{ 'cancel' | translate }}
+    </button>
+  </div>
+
+  <div class="btn-group" ng-if="file.mimetype == 'application/pdf'">
+    <button type="button" class="btn btn-default" ng-class="{'active': mode === Type.NONE}" uib-tooltip="Pointer" tooltip-append-to-body="true" ng-click="noneMode()">
+      <span class="fas fa-mouse-pointer"></span>
+    </button>
+    <button type="button" class="btn btn-default" ng-class="{'active': mode === Type.INK}" uib-tooltip="Draw" tooltip-append-to-body="true" ng-click="inkMode()">
+      <span class="fas fa-pencil-alt"></span>
+    </button>
+    <button type="button" class="btn btn-default" ng-class="{'active': mode === Type.HIGHLIGHT}" uib-tooltip="Highlight" tooltip-append-to-body="true" ng-click="highlightMode()">
+      <span class="fas fa-highlighter"></span>
+    </button>
+    <button type="button" class="btn btn-default" ng-class="{'active': mode === Type.FREETEXT}" uib-tooltip="Text" tooltip-append-to-body="true" ng-click="freetextMode()">
+      <span class="fas fa-t"></span>
+    </button>
+    <button type="button" class="btn btn-placeholder" style="visibility: hidden">
+      &nbsp;
+    </button>
+  </div>
+
+  <div class="btn-group pull-right">
+    <button type="button" class="btn btn-default" ng-click="submit()">
+      <span class="fas fa-check"></span>
+      {{ 'ok' | translate }}
+    </button>
+  </div>
+</div>
+
+<div id="editArea" class="text-center" style="position: relative;" ng-if="$stateParams.fileId">
+  <div id="viewerContainer" class="pdfjs-viewer-container" ng-show="!error && file.mimetype == 'application/pdf'">
+    <div class="pdfViewer"></div>
+  </div>
+
+  <!-- File not found -->
+  <p class="well-lg" ng-show="error">
+    <span class="fas fa-exclamation-triangle"></span>
+    {{ 'file.view.not_found' | translate }}
+  </p>
+</div>

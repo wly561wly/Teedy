@@ -2,11 +2,30 @@
 <project xmlns="http://maven.apache.org/DECORATION/1.8.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/DECORATION/1.8.0 https://maven.apache.org/xsd/decoration-1.8.0.xsd">
 
+  <skin>
+    <groupId>org.apache.maven.skins</groupId>
+    <artifactId>maven-fluido-skin</artifactId>
+    <version>1.11.1</version>
+  </skin>
+
   <body>
+
+    <menu name="Project Information">
+      <item name="About" href="index.html"/>
+      <item name="Summary" href="summary.html"/>
+      <item name="Project Modules" href="modules.html"/>
+      <item name="Maven Coordinates" href="dependency-info.html"/>
+      <item name="Dependency Management" href="dependency-management.html"/>
+      <item name="Distribution Management" href="distribution-management.html"/>
+    </menu>
+
     <menu name="Project Reports">
       <item name="PMD" href="pmd.html"/>
       <item name="CPD" href="cpd.html"/>
     </menu>
-  </body>
 
+    <menu ref="modules" inherit="top"/>
+
+    <menu ref="parent"/>
+  </body>
 </project>
