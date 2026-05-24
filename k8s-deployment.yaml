@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: teedy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: teedy
+  template:
+    metadata:
+      labels:
+        app: teedy
+    spec:
+      containers:
+      - name: teedy
+        image: louis886/teedy-app:latest
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 8080

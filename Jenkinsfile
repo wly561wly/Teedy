@@ -30,37 +30,62 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 echo 'Building Docker image...'
-                sh 'docker build -t louis886/teedy-app:latest .'
-                sh 'docker push louis886/teedy-app:latest'
+                sh 'powershell.exe -Command "docker build -t louis886/teedy-app:latest ."'
+                sh 'powershell.exe -Command "docker push louis886/teedy-app:latest"'
             }
         }
         stage('Start Minikube') {
             steps {
-                echo 'Checking Minikube status...'
-                sh 'minikube status || minikube start --driver=docker --memory=4096 --cpus=2'
-                sh 'sleep 10'
-                sh 'minikube status'
+                echo 'Ensuring Minikube is running...'
+                sh 'powershell.exe -Command "minikube delete 2>`$null; minikube start --driver=docker --memory=4096 --cpus=2"'
+                sh 'powershell.exe -Command "kubectl wait --for=condition=Ready node/minikube --timeout=300s"'
+                sh 'powershell.exe -Command "kubectl config use-context minikube"'
+                echo 'Minikube started and ready.'
             }
         }
         stage('Load Image') {
             steps {
                 echo 'Loading image into Minikube...'
-                sh 'minikube image load louis886/teedy-app:latest'
+                sh 'powershell.exe -Command "minikube image load louis886/teedy-app:latest"'
             }
         }
-        stage('Set Image') {
+        stage('Deploy Teedy') {
             steps {
-                echo 'Updating K8s deployment...'
-                sh 'kubectl set image deployments/teedy teedy=louis886/teedy-app:latest'
+                script {
+                    echo 'Deploying or updating Teedy application...'
+                    def deployExists = sh(script: 'powershell.exe -Command "kubectl get deployment teedy --ignore-not-found"', returnStdout: true).trim()
+                    if (deployExists == "") {
+                        echo 'Creating new Teedy deployment...'
+                        sh 'powershell.exe -Command "kubectl create deployment teedy --image=louis886/teedy-app:latest"'
+                    } else {
+                        echo 'Updating existing Teedy deployment image...'
+                        sh 'powershell.exe -Command "kubectl set image deployments/teedy teedy=louis886/teedy-app:latest"'
+                    }
+                    sh 'powershell.exe -Command "kubectl rollout status deployment/teedy --timeout=300s"'
+
+                    def serviceExists = sh(script: 'powershell.exe -Command "kubectl get service teedy --ignore-not-found"', returnStdout: true).trim()
+                    if (serviceExists == "") {
+                        echo 'Exposing Teedy service...'
+                        sh 'powershell.exe -Command "kubectl expose deployment teedy --type=NodePort --port=8080 --name=teedy"'
+                    } else {
+                        echo 'Teedy service already exists.'
+                    }
+                }
             }
         }
         stage('Verify') {
             steps {
                 echo 'Verifying deployment...'
-                sh 'kubectl get deployments'
-                sh 'kubectl get pods'
-                sh 'kubectl get services'
-                sh 'kubectl rollout status deployments/teedy --timeout=120s'
+                sh 'powershell.exe -Command "kubectl get deployments"'
+                sh 'powershell.exe -Command "kubectl get pods"'
+                sh 'powershell.exe -Command "kubectl get services"'
+                sh 'powershell.exe -Command "kubectl rollout status deployments/teedy --timeout=300s"'
+
+                script {
+                    echo 'Getting Teedy service URL...'
+                    def teedyUrl = sh(script: 'powershell.exe -Command "minikube service teedy --url"', returnStdout: true).trim()
+                    echo "Teedy application is available at: ${teedyUrl}"
+                }
             }
         }
     }
