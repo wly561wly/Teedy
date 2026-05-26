@@ -1,10 +1,5 @@
 pipeline {
     agent any
-    environment {
-        IMAGE_REPO = 'louis886/teedy-app'
-        IMAGE_TAG = "${env.BUILD_NUMBER}"
-        MINIKUBE_EXE = 'C:\\minikube\\minikube.exe'
-    }
     stages {
         stage('Checkout') {
             steps {
@@ -16,19 +11,19 @@ pipeline {
             steps {
                 echo 'Deploying Teedy to Kubernetes...'
                 script {
-                    def hasImage = powershell(script: 'docker images -q $env:IMAGE_REPO:latest', returnStdout: true).trim()
+                    def hasImage = powershell(script: 'docker images -q louis886/teedy-app:latest', returnStdout: true).trim()
                     if (!hasImage) {
                         echo 'Local Docker image not found; pulling from registry...'
-                        def pullStatus = powershell(script: 'docker pull $env:IMAGE_REPO:latest', returnStatus: true)
+                        def pullStatus = powershell(script: 'docker pull louis886/teedy-app:latest', returnStatus: true)
                         if (pullStatus != 0) {
                             error('Docker pull failed.')
                         }
                     } else {
-                        echo "Local image found: $env:IMAGE_REPO:latest"
+                        echo "Local image found: louis886/teedy-app:latest"
                     }
                 }
                 powershell 'kubectl config use-context minikube'
-                echo "Loading image: $env:IMAGE_REPO:latest"
+                echo "Loading image: louis886/teedy-app:latest"
                 powershell "& \"C:\\minikube\\minikube.exe\" image load louis886/teedy-app:latest"
                 echo 'Applying Kubernetes configuration...'
                 powershell 'kubectl apply -f k8s-deployment.yaml'
@@ -44,7 +39,7 @@ pipeline {
                 powershell 'kubectl get pods'
                 powershell 'kubectl get services'
                 script {
-                    def teedyUrl = powershell(script: "& `$env:MINIKUBE_EXE service teedy --url", returnStdout: true).trim()
+                    def teedyUrl = powershell(script: "& \"C:\\minikube\\minikube.exe\" service teedy --url", returnStdout: true).trim()
                     echo "==========================================="
                     echo "Teedy application is available at: ${teedyUrl}"
                     echo "==========================================="
