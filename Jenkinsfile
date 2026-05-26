@@ -26,6 +26,7 @@ pipeline {
         stage('Set Image') {
             steps {
                 echo 'Updating Teedy image in Kubernetes...'
+                sh 'kubectl apply -f k8s-deployment.yaml'
                 sh 'kubectl set image deployment/teedy teedy=$IMAGE_REPO:$IMAGE_TAG'
                 sh 'kubectl rollout status deployment/teedy --timeout=300s'
             }
