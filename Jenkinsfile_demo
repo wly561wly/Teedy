@@ -18,7 +18,7 @@ pipeline {
             steps {
                 echo 'Ensuring Minikube is running...'
                 echo 'Demo mode: minikube status --format "{{.Host}}"'
-                echo 'Demo mode: minikube start --driver=docker --memory=4096 --cpus=2'
+                echo 'Demo mode: minikube start --driver=docker --memory=4096 --cpus=2 --force'
                 echo 'Demo mode: kubectl config use-context minikube'
                 echo 'Demo mode: kubectl wait --for=condition=Ready node/minikube --timeout=300s'
                 echo 'Minikube started and ready.'

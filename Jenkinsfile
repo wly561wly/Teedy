@@ -17,7 +17,7 @@ pipeline {
         stage('Start Minikube') {
             steps {
                 echo 'Ensuring Minikube is running...'
-                sh 'status=$(minikube status --format "{{.Host}}" 2>/dev/null || true); if [ "$status" != "Running" ]; then minikube start --driver=docker --memory=4096 --cpus=2; fi'
+                sh 'status=$(minikube status --format "{{.Host}}" 2>/dev/null || true); if [ "$status" != "Running" ]; then minikube start --driver=docker --memory=4096 --cpus=2 --force; fi'
                 sh 'kubectl config use-context minikube'
                 sh 'kubectl wait --for=condition=Ready node/minikube --timeout=300s'
                 echo 'Minikube started and ready.'
