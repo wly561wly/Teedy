@@ -14,7 +14,18 @@ pipeline {
         stage('Start Minikube') {
             steps {
                 echo 'Ensuring Minikube is running...'
-                powershell 'try { $status = minikube status --format "{{.Host}}" 2>$null } catch { $status = "Stopped" }; if ($status -ne "Running") { minikube start --driver=docker --memory=4096 --cpus=2 }'
+                script {
+                    def statusCheck = powershell(script: 'minikube status --format "{{.Host}}"', returnStatus: true)
+                    if (statusCheck != 0) {
+                        echo 'Minikube status check failed; starting Minikube...'
+                        powershell 'minikube start --driver=docker --memory=4096 --cpus=2'
+                    } else {
+                        def hostStatus = powershell(script: 'minikube status --format "{{.Host}}"', returnStdout: true).trim()
+                        if (hostStatus -ne 'Running') {
+                            powershell 'minikube start --driver=docker --memory=4096 --cpus=2'
+                        }
+                    }
+                }
                 powershell 'kubectl config use-context minikube'
                 powershell 'kubectl wait --for=condition=Ready node/minikube --timeout=300s'
                 echo 'Minikube started and ready.'
