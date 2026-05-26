@@ -18,11 +18,27 @@ pipeline {
                     def statusCheck = powershell(script: 'minikube status --format "{{.Host}}"', returnStatus: true)
                     if (statusCheck != 0) {
                         echo 'Minikube status check failed; starting Minikube...'
-                        powershell 'minikube start --driver=docker --memory=4096 --cpus=2'
+                        def startStatus = powershell(script: 'minikube start --driver=docker --memory=4096 --cpus=2', returnStatus: true)
+                        if (startStatus != 0) {
+                            echo 'Minikube start failed; deleting profile and retrying...'
+                            powershell 'minikube delete'
+                            startStatus = powershell(script: 'minikube start --driver=docker --memory=4096 --cpus=2', returnStatus: true)
+                            if (startStatus != 0) {
+                                error('Minikube start failed after retry. Check Jenkins console for minikube output.')
+                            }
+                        }
                     } else {
                         def hostStatus = powershell(script: 'minikube status --format "{{.Host}}"', returnStdout: true).trim()
                         if (hostStatus != 'Running') {
-                            powershell 'minikube start --driver=docker --memory=4096 --cpus=2'
+                            def startStatus = powershell(script: 'minikube start --driver=docker --memory=4096 --cpus=2', returnStatus: true)
+                            if (startStatus != 0) {
+                                echo 'Minikube start failed; deleting profile and retrying...'
+                                powershell 'minikube delete'
+                                startStatus = powershell(script: 'minikube start --driver=docker --memory=4096 --cpus=2', returnStatus: true)
+                                if (startStatus != 0) {
+                                    error('Minikube start failed after retry. Check Jenkins console for minikube output.')
+                                }
+                            }
                         }
                     }
                 }
