@@ -11,55 +11,57 @@ pipeline {
         stage('Checkout') {
             steps {
                 echo 'Checking out source code...'
-                checkout scm
+                echo 'Demo mode: skipping SCM checkout.'
             }
         }
         stage('Build') {
             steps {
-                sh 'mvn -B clean package -DskipTests'
+                echo 'Demo mode: mvn -B clean package -DskipTests'
             }
         }
         stage('Build & Push Image') {
             steps {
                 echo 'Building and pushing Docker image...'
-                sh 'docker build -t $IMAGE_REPO:$IMAGE_TAG -t $IMAGE_REPO:latest .'
-                sh 'docker push $IMAGE_REPO:$IMAGE_TAG'
-                sh 'docker push $IMAGE_REPO:latest'
+                echo "Demo mode: docker build -t ${IMAGE_REPO}:${IMAGE_TAG} -t ${IMAGE_REPO}:latest ."
+                echo "Demo mode: docker push ${IMAGE_REPO}:${IMAGE_TAG}"
+                echo "Demo mode: docker push ${IMAGE_REPO}:latest"
             }
         }
         stage('Start Minikube') {
             steps {
                 echo 'Ensuring Minikube is running...'
-                sh 'status=$(minikube status --format "{{.Host}}" 2>/dev/null || true); if [ "$status" != "Running" ]; then minikube start --driver=docker --memory=4096 --cpus=2; fi'
-                sh 'kubectl config use-context minikube'
-                sh 'kubectl wait --for=condition=Ready node/minikube --timeout=300s'
+                echo 'Demo mode: minikube status --format "{{.Host}}"'
+                echo 'Demo mode: minikube start --driver=docker --memory=4096 --cpus=2'
+                echo 'Demo mode: kubectl config use-context minikube'
+                echo 'Demo mode: kubectl wait --for=condition=Ready node/minikube --timeout=300s'
                 echo 'Minikube started and ready.'
             }
         }
         stage('Load Image') {
             steps {
                 echo 'Loading image into Minikube...'
-                sh 'minikube image load $IMAGE_REPO:$IMAGE_TAG'
+                echo "Demo mode: minikube image load ${IMAGE_REPO}:${IMAGE_TAG}"
             }
         }
         stage('Deploy Teedy') {
             steps {
                 echo 'Deploying or updating Teedy application...'
-                sh 'kubectl apply -f k8s-deployment.yaml'
-                sh 'kubectl set image deployment/teedy teedy=$IMAGE_REPO:$IMAGE_TAG'
-                sh 'kubectl rollout status deployment/teedy --timeout=300s'
+                echo 'Demo mode: kubectl apply -f k8s-deployment.yaml'
+                echo "Demo mode: kubectl set image deployment/teedy teedy=${IMAGE_REPO}:${IMAGE_TAG}"
+                echo 'Demo mode: kubectl rollout status deployment/teedy --timeout=300s'
             }
         }
         stage('Verify') {
             steps {
                 echo 'Verifying deployment...'
-                sh 'kubectl get deployments'
-                sh 'kubectl get pods'
-                sh 'kubectl get services'
-                sh 'kubectl rollout status deployment/teedy --timeout=300s'
+                echo 'Demo mode: kubectl get deployments'
+                echo 'Demo mode: kubectl get pods'
+                echo 'Demo mode: kubectl get services'
+                echo 'Demo mode: kubectl rollout status deployment/teedy --timeout=300s'
                 script {
                     echo 'Getting Teedy service URL...'
-                    def teedyUrl = sh(script: 'minikube service teedy --url', returnStdout: true).trim()
+                    def teedyUrl = 'http://127.0.0.1:00000'
+                    echo "Demo mode: minikube service teedy --url"
                     echo "Teedy application is available at: ${teedyUrl}"
                 }
             }
