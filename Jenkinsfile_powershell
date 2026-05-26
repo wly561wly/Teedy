@@ -15,6 +15,7 @@ pipeline {
         stage('Start Minikube') {
             steps {
                 echo 'Ensuring Minikube is running...'
+                powershell(script: 'docker network rm minikube', returnStatus: true)
                 script {
                     def statusCheck = powershell(script: '& $env:MINIKUBE_EXE status --format "{{.Host}}"', returnStatus: true)
                     if (statusCheck != 0) {
@@ -51,6 +52,7 @@ pipeline {
         stage('Set Image') {
             steps {
                 echo 'Updating Teedy image in Kubernetes...'
+                powershell '& $env:MINIKUBE_EXE image load $env:IMAGE_REPO:latest'
                 powershell 'kubectl apply -f k8s-deployment.yaml'
                 powershell 'kubectl set image deployment/teedy teedy=$env:IMAGE_REPO:$env:IMAGE_TAG'
                 powershell 'kubectl rollout status deployment/teedy --timeout=300s'
