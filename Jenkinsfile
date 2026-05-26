@@ -14,19 +14,6 @@ pipeline {
                 checkout scm
             }
         }
-        stage('Build') {
-            steps {
-                sh 'mvn -B clean package -DskipTests'
-            }
-        }
-        stage('Build & Push Image') {
-            steps {
-                echo 'Building and pushing Docker image...'
-                sh 'docker build -t $IMAGE_REPO:$IMAGE_TAG -t $IMAGE_REPO:latest .'
-                sh 'docker push $IMAGE_REPO:$IMAGE_TAG'
-                sh 'docker push $IMAGE_REPO:latest'
-            }
-        }
         stage('Start Minikube') {
             steps {
                 echo 'Ensuring Minikube is running...'
@@ -36,16 +23,9 @@ pipeline {
                 echo 'Minikube started and ready.'
             }
         }
-        stage('Load Image') {
+        stage('Set Image') {
             steps {
-                echo 'Loading image into Minikube...'
-                sh 'minikube image load $IMAGE_REPO:$IMAGE_TAG'
-            }
-        }
-        stage('Deploy Teedy') {
-            steps {
-                echo 'Deploying or updating Teedy application...'
-                sh 'kubectl apply -f k8s-deployment.yaml'
+                echo 'Updating Teedy image in Kubernetes...'
                 sh 'kubectl set image deployment/teedy teedy=$IMAGE_REPO:$IMAGE_TAG'
                 sh 'kubectl rollout status deployment/teedy --timeout=300s'
             }
