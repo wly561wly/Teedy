@@ -21,7 +21,7 @@ pipeline {
                         powershell 'minikube start --driver=docker --memory=4096 --cpus=2'
                     } else {
                         def hostStatus = powershell(script: 'minikube status --format "{{.Host}}"', returnStdout: true).trim()
-                        if (hostStatus -ne 'Running') {
+                        if (hostStatus != 'Running') {
                             powershell 'minikube start --driver=docker --memory=4096 --cpus=2'
                         }
                     }
