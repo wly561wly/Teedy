@@ -12,57 +12,28 @@ pipeline {
                 checkout scm
             }
         }
-        stage('Start Minikube') {
+        stage('Deploy Teedy') {
             steps {
-                echo 'Ensuring Minikube is running...'
+                echo 'Deploying Teedy to Kubernetes...'
                 script {
-                    def statusCheck = powershell(script: '& $env:MINIKUBE_EXE status --format "{{.Host}}"', returnStatus: true)
-                    if (statusCheck != 0) {
-                        echo 'Minikube status check failed; deleting and starting fresh...'
-                        powershell(script: '& $env:MINIKUBE_EXE delete', returnStatus: true)
-                        def startStatus = powershell(script: '& $env:MINIKUBE_EXE start --driver=docker --memory=4096 --cpus=2 --force', returnStatus: true)
-                        if (startStatus != 0) {
-                            error('Minikube start failed.')
-                        }
-                    } else {
-                        def hostStatus = powershell(script: '& $env:MINIKUBE_EXE status --format "{{.Host}}"', returnStdout: true).trim()
-                        if (hostStatus != 'Running') {
-                            powershell(script: '& $env:MINIKUBE_EXE delete', returnStatus: true)
-                            def startStatus = powershell(script: '& $env:MINIKUBE_EXE start --driver=docker --memory=4096 --cpus=2 --force', returnStatus: true)
-                            if (startStatus != 0) {
-                                error('Minikube start failed.')
-                            }
-                        }
-                    }
-                }
-                powershell 'kubectl config use-context minikube'
-                powershell 'kubectl wait --for=condition=Ready node/minikube --timeout=300s'
-                echo 'Minikube started and ready.'
-            }
-        }
-        stage('Set Image') {
-            steps {
-                echo 'Updating Teedy image in Kubernetes...'
-                script {
-                    // 检查本地是否有镜像
                     def hasImage = powershell(script: 'docker images -q $env:IMAGE_REPO:latest', returnStdout: true).trim()
                     if (!hasImage) {
                         echo 'Local Docker image not found; pulling from registry...'
                         def pullStatus = powershell(script: 'docker pull $env:IMAGE_REPO:latest', returnStatus: true)
                         if (pullStatus != 0) {
-                            error('Docker pull failed; ensure Docker Desktop can access the registry or pre-load the image locally.')
+                            error('Docker pull failed.')
                         }
                     } else {
                         echo "Local image found: $env:IMAGE_REPO:latest"
                     }
                 }
-                // 加载镜像到 minikube
+                powershell 'kubectl config use-context minikube'
                 echo "Loading image: $env:IMAGE_REPO:latest"
                 powershell "& `$env:MINIKUBE_EXE image load `$env:IMAGE_REPO:latest"
-                
-                // 部署
+                echo 'Applying Kubernetes configuration...'
                 powershell 'kubectl apply -f k8s-deployment.yaml'
                 powershell "kubectl set image deployment/teedy teedy=`$env:IMAGE_REPO:latest"
+                echo 'Waiting for rollout to complete...'
                 powershell 'kubectl rollout status deployment/teedy --timeout=300s'
             }
         }
@@ -72,18 +43,17 @@ pipeline {
                 powershell 'kubectl get deployments'
                 powershell 'kubectl get pods'
                 powershell 'kubectl get services'
-                powershell 'kubectl rollout status deployment/teedy --timeout=300s'
                 script {
-                    echo 'Getting Teedy service URL...'
                     def teedyUrl = powershell(script: "& `$env:MINIKUBE_EXE service teedy --url", returnStdout: true).trim()
+                    echo "==========================================="
                     echo "Teedy application is available at: ${teedyUrl}"
+                    echo "==========================================="
                 }
             }
         }
     }
     post {
         always {
-            archiveArtifacts artifacts: '**/target/site/**/*.*', fingerprint: true
             archiveArtifacts artifacts: '**/target/**/*.jar', fingerprint: true
             archiveArtifacts artifacts: '**/target/**/*.war', fingerprint: true
             junit '**/target/surefire-reports/*.xml'
