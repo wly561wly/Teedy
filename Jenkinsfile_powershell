@@ -39,7 +39,9 @@ pipeline {
                 powershell 'kubectl get pods'
                 powershell 'kubectl get services'
                 script {
-                    def teedyUrl = powershell(script: "& \"C:\\minikube\\minikube.exe\" service teedy --url", returnStdout: true).trim()
+                    def nodePort = powershell(script: 'kubectl get service teedy -o jsonpath="{.spec.ports[0].nodePort}"', returnStdout: true).trim()
+                    def minikubeIp = powershell(script: '& "C:\\minikube\\minikube.exe" ip', returnStdout: true).trim()
+                    def teedyUrl = "http://${minikubeIp}:${nodePort}"
                     echo "==========================================="
                     echo "Teedy application is available at: ${teedyUrl}"
                     echo "==========================================="
