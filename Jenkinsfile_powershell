@@ -21,7 +21,7 @@ pipeline {
                         def startStatus = powershell(script: 'minikube start --driver=docker --memory=4096 --cpus=2', returnStatus: true)
                         if (startStatus != 0) {
                             echo 'Minikube start failed; deleting profile and retrying...'
-                            powershell 'minikube delete'
+                            powershell(script: 'minikube delete', returnStatus: true)
                             startStatus = powershell(script: 'minikube start --driver=docker --memory=4096 --cpus=2', returnStatus: true)
                             if (startStatus != 0) {
                                 error('Minikube start failed after retry. Check Jenkins console for minikube output.')
@@ -33,7 +33,7 @@ pipeline {
                             def startStatus = powershell(script: 'minikube start --driver=docker --memory=4096 --cpus=2', returnStatus: true)
                             if (startStatus != 0) {
                                 echo 'Minikube start failed; deleting profile and retrying...'
-                                powershell 'minikube delete'
+                                powershell(script: 'minikube delete', returnStatus: true)
                                 startStatus = powershell(script: 'minikube start --driver=docker --memory=4096 --cpus=2', returnStatus: true)
                                 if (startStatus != 0) {
                                     error('Minikube start failed after retry. Check Jenkins console for minikube output.')
