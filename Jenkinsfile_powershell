@@ -29,7 +29,7 @@ pipeline {
                 }
                 powershell 'kubectl config use-context minikube'
                 echo "Loading image: $env:IMAGE_REPO:latest"
-                powershell "& `$env:MINIKUBE_EXE image load `$env:IMAGE_REPO:latest"
+                powershell "& \"C:\\minikube\\minikube.exe\" image load louis886/teedy-app:latest"
                 echo 'Applying Kubernetes configuration...'
                 powershell 'kubectl apply -f k8s-deployment.yaml'
                 powershell "kubectl set image deployment/teedy teedy=`$env:IMAGE_REPO:latest"
