@@ -15,31 +15,22 @@ pipeline {
         stage('Start Minikube') {
             steps {
                 echo 'Ensuring Minikube is running...'
-                powershell(script: 'docker network rm minikube', returnStatus: true)
                 script {
                     def statusCheck = powershell(script: '& $env:MINIKUBE_EXE status --format "{{.Host}}"', returnStatus: true)
                     if (statusCheck != 0) {
-                        echo 'Minikube status check failed; starting Minikube...'
-                        def startStatus = powershell(script: '& $env:MINIKUBE_EXE start --driver=docker --memory=4096 --cpus=2', returnStatus: true)
+                        echo 'Minikube status check failed; deleting and starting fresh...'
+                        powershell(script: '& $env:MINIKUBE_EXE delete', returnStatus: true)
+                        def startStatus = powershell(script: '& $env:MINIKUBE_EXE start --driver=docker --memory=4096 --cpus=2 --force', returnStatus: true)
                         if (startStatus != 0) {
-                            echo 'Minikube start failed; deleting profile and retrying...'
-                            powershell(script: '& $env:MINIKUBE_EXE delete', returnStatus: true)
-                            startStatus = powershell(script: '& $env:MINIKUBE_EXE start --driver=docker --memory=4096 --cpus=2', returnStatus: true)
-                            if (startStatus != 0) {
-                                error('Minikube start failed after retry. Check Jenkins console for minikube output.')
-                            }
+                            error('Minikube start failed.')
                         }
                     } else {
                         def hostStatus = powershell(script: '& $env:MINIKUBE_EXE status --format "{{.Host}}"', returnStdout: true).trim()
                         if (hostStatus != 'Running') {
-                            def startStatus = powershell(script: '& $env:MINIKUBE_EXE start --driver=docker --memory=4096 --cpus=2', returnStatus: true)
+                            powershell(script: '& $env:MINIKUBE_EXE delete', returnStatus: true)
+                            def startStatus = powershell(script: '& $env:MINIKUBE_EXE start --driver=docker --memory=4096 --cpus=2 --force', returnStatus: true)
                             if (startStatus != 0) {
-                                echo 'Minikube start failed; deleting profile and retrying...'
-                                powershell(script: '& $env:MINIKUBE_EXE delete', returnStatus: true)
-                                startStatus = powershell(script: '& $env:MINIKUBE_EXE start --driver=docker --memory=4096 --cpus=2', returnStatus: true)
-                                if (startStatus != 0) {
-                                    error('Minikube start failed after retry. Check Jenkins console for minikube output.')
-                                }
+                                error('Minikube start failed.')
                             }
                         }
                     }
@@ -52,9 +43,26 @@ pipeline {
         stage('Set Image') {
             steps {
                 echo 'Updating Teedy image in Kubernetes...'
-                powershell '& $env:MINIKUBE_EXE image load $env:IMAGE_REPO:latest'
+                script {
+                    // 检查本地是否有镜像
+                    def hasImage = powershell(script: 'docker images -q $env:IMAGE_REPO:latest', returnStdout: true).trim()
+                    if (!hasImage) {
+                        echo 'Local Docker image not found; pulling from registry...'
+                        def pullStatus = powershell(script: 'docker pull $env:IMAGE_REPO:latest', returnStatus: true)
+                        if (pullStatus != 0) {
+                            error('Docker pull failed; ensure Docker Desktop can access the registry or pre-load the image locally.')
+                        }
+                    } else {
+                        echo "Local image found: $env:IMAGE_REPO:latest"
+                    }
+                }
+                // 加载镜像到 minikube
+                echo "Loading image: $env:IMAGE_REPO:latest"
+                powershell "& `$env:MINIKUBE_EXE image load `$env:IMAGE_REPO:latest"
+                
+                // 部署
                 powershell 'kubectl apply -f k8s-deployment.yaml'
-                powershell 'kubectl set image deployment/teedy teedy=$env:IMAGE_REPO:$env:IMAGE_TAG'
+                powershell "kubectl set image deployment/teedy teedy=`$env:IMAGE_REPO:latest"
                 powershell 'kubectl rollout status deployment/teedy --timeout=300s'
             }
         }
@@ -67,7 +75,7 @@ pipeline {
                 powershell 'kubectl rollout status deployment/teedy --timeout=300s'
                 script {
                     echo 'Getting Teedy service URL...'
-                    def teedyUrl = powershell(script: '& $env:MINIKUBE_EXE service teedy --url', returnStdout: true).trim()
+                    def teedyUrl = powershell(script: "& `$env:MINIKUBE_EXE service teedy --url", returnStdout: true).trim()
                     echo "Teedy application is available at: ${teedyUrl}"
                 }
             }
@@ -75,10 +83,12 @@ pipeline {
     }
     post {
         always {
-            archiveArtifacts artifacts: '**/target/site/**/*.*', fingerprint: true
-            archiveArtifacts artifacts: '**/target/**/*.jar', fingerprint: true
-            archiveArtifacts artifacts: '**/target/**/*.war', fingerprint: true
-            junit '**/target/surefire-reports/*.xml'
+            node {
+                archiveArtifacts artifacts: '**/target/site/**/*.*', fingerprint: true
+                archiveArtifacts artifacts: '**/target/**/*.jar', fingerprint: true
+                archiveArtifacts artifacts: '**/target/**/*.war', fingerprint: true
+                junit '**/target/surefire-reports/*.xml'
+            }
         }
     }
 }
