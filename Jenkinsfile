@@ -1,8 +1,5 @@
 pipeline {
     agent any
-    options {
-        timestamps()
-    }
     environment {
         IMAGE_REPO = 'louis886/teedy-app'
         IMAGE_TAG = "${env.BUILD_NUMBER}"
